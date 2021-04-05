@@ -11,6 +11,9 @@ import (
 func main() {
 
 	filepath := os.Args[1]
+	jsonstr := os.Args[2]
+
+	fmt.Println(jsonstr)
 
 	f, err := excelize.OpenFile(filepath)
 	if err != nil {
