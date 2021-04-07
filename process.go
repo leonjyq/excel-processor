@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 )
@@ -32,6 +33,8 @@ func main() {
 	}
 
 	sheets := f.GetSheetList()
+	const inForm = "Jan-06"
+	const outForm = "02/01/2006"
 	for _, sheet := range sheets {
 		fmt.Println(sheet)
 		sheetType := strings.Split(sheet, "_")[1]
@@ -41,10 +44,20 @@ func main() {
 			fmt.Println(sheetType)
 		}
 
-		col, err := f.GetCols(sheet)
+		cols, err := f.GetCols(sheet)
 		if err != nil {
 			fmt.Println(err)
 			return
+		}
+		for _, col := range cols[1:] {
+			// kind := col[0]
+			date := col[1]
+			t, _ := time.Parse(inForm, date)
+			last := t.AddDate(0, 1, -1)
+			fmt.Println(last.Format(outForm))
+			for i, _ := range col[2:] {
+				fmt.Println(i)
+			}
 		}
 	}
 
