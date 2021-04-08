@@ -2,15 +2,21 @@ package main
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
-
-	"github.com/360EntSecGroup-Skylar/excelize/v2"
 )
+
+type Channel struct {
+	Channel string      `json:"channel"`
+	Percentage int   	`json:"percentage"`
+}
 
 func main() {
 
@@ -34,49 +40,66 @@ func main() {
 
 	sheets := f.GetSheetList()
 	const inForm = "Jan-06"
-	const outForm = "02/01/2006"
+	const outForm = "01/02/2006"
+	channels := []Channel{}
+	records := [][]string{}
+	header := []string{"Transaction Date", "Value in document currency", "Value in Company Currency", "Units Sold",
+	"Item number affiliate", "Customer number local", "Posting Date"}
+	records = append(records, header)
+
 	for _, sheet := range sheets {
 		fmt.Println(sheet)
 		sheetType := strings.Split(sheet, "_")[1]
 		if strings.EqualFold(sheetType, "distributor") {
-			fmt.Println(sheetType)
+			json.Unmarshal([]byte(distributorRule), &channels)
 		} else if strings.EqualFold(sheetType, "d2c") {
-			fmt.Println(sheetType)
+			json.Unmarshal([]byte(d2cRule), &channels)
 		}
-
 		cols, err := f.GetCols(sheet)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		for _, col := range cols[1:] {
+		date := cols[1][1]
+		fmt.Println(date)
+		t, _ := time.Parse(inForm, date)
+		restMonth := int(t.Month())
+		colNum := 12 - restMonth + 1
+		for i, col := range cols[1:colNum+1] {
 			// kind := col[0]
 			date := col[1]
 			t, _ := time.Parse(inForm, date)
 			last := t.AddDate(0, 1, -1)
-			fmt.Println(last.Format(outForm))
-			for i, _ := range col[2:] {
-				fmt.Println(i)
+			transactionDate := last.Format(outForm)
+			for j, colValue := range col[2:] {
+				for _, channel := range channels {
+					line := []string{}
+					line = append(line, transactionDate)
+					revenue, err := strconv.Atoi(cols[i+1+restMonth][j])
+
+					if err != nil {
+						fmt.Println(err)
+						return
+					}
+					
+					unitSold, err := strconv.Atoi(colValue)
+					if err != nil {
+						fmt.Println(err)
+						return
+					}
+					line = append(line, strconv.Itoa(revenue*channel.Percentage/100))
+					line = append(line, strconv.Itoa(revenue*channel.Percentage/100))
+					line = append(line, strconv.Itoa(unitSold*channel.Percentage/100))
+					line = append(line, cols[0][j])
+					line = append(line, channel.Channel)
+					line = append(line, transactionDate)
+					records = append(records, line)
+				}
 			}
 		}
 	}
 
 	return
-	rows, err := f.GetRows("MHKN_D2C")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	records := [][]string{}
-
-	for _, row := range rows {
-		line := []string{}
-		for _, colCell := range row {
-			line = append(line, colCell)
-		}
-		records = append(records, line)
-	}
 
 	output, err := os.Create("result.csv")
 	if err != nil {
