@@ -5,17 +5,18 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"log"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/360EntSecGroup-Skylar/excelize/v2"
 )
 
 type Channel struct {
-	Channel string      `json:"channel"`
-	Percentage int   	`json:"percentage"`
+	Channel    string `json:"channel"`
+	Percentage int    `json:"percentage"`
 }
 
 func main() {
@@ -44,7 +45,7 @@ func main() {
 	channels := []Channel{}
 	records := [][]string{}
 	header := []string{"Transaction Date", "Value in document currency", "Value in Company Currency", "Units Sold",
-	"Item number affiliate", "Customer number local", "Posting Date"}
+		"Item number affiliate", "Customer number local", "Posting Date"}
 	records = append(records, header)
 
 	for _, sheet := range sheets {
@@ -63,9 +64,9 @@ func main() {
 		date := cols[1][1]
 		fmt.Println(date)
 		t, _ := time.Parse(inForm, date)
-		restMonth := int(t.Month())
-		colNum := 12 - restMonth + 1
-		for i, col := range cols[1:colNum+1] {
+		m := int(t.Month())
+		restMonth := 12 - m + 1
+		for i, col := range cols[1 : restMonth+1] {
 			// kind := col[0]
 			date := col[1]
 			t, _ := time.Parse(inForm, date)
@@ -75,13 +76,19 @@ func main() {
 				for _, channel := range channels {
 					line := []string{}
 					line = append(line, transactionDate)
-					revenue, err := strconv.Atoi(cols[i+1+restMonth][j])
+					fmt.Print(i + 1 + restMonth)
+					fmt.Print("--")
+					fmt.Println(j + 2)
+					fmt.Print(cols[i+1+restMonth][j+2])
+					fmt.Print("--")
+					fmt.Println(colValue)
+					revenue, err := strconv.Atoi(cols[i+1+restMonth][j+2])
 
 					if err != nil {
 						fmt.Println(err)
 						return
 					}
-					
+
 					unitSold, err := strconv.Atoi(colValue)
 					if err != nil {
 						fmt.Println(err)
