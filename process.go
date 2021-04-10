@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -49,7 +50,6 @@ func main() {
 	records = append(records, header)
 
 	for _, sheet := range sheets {
-		fmt.Println(sheet)
 		sheetType := strings.Split(sheet, "_")[1]
 		if strings.EqualFold(sheetType, "distributor") {
 			json.Unmarshal([]byte(distributorRule), &channels)
@@ -62,53 +62,87 @@ func main() {
 			return
 		}
 		date := cols[1][1]
-		fmt.Println(date)
 		t, _ := time.Parse(inForm, date)
 		m := int(t.Month())
 		restMonth := 12 - m + 1
 		for i, col := range cols[1 : restMonth+1] {
-			// kind := col[0]
+			i++
 			date := col[1]
 			t, _ := time.Parse(inForm, date)
 			last := t.AddDate(0, 1, -1)
 			transactionDate := last.Format(outForm)
 			for j, colValue := range col[2:] {
-				for _, channel := range channels {
+				j = j + 2
+				var us, re, fg float64
+				for k, channel := range channels {
 					line := []string{}
+					fgline := []string{}
 					line = append(line, transactionDate)
-					fmt.Print(i + 1 + restMonth)
-					fmt.Print("--")
-					fmt.Println(j + 2)
-					fmt.Print(cols[i+1+restMonth][j+2])
-					fmt.Print("--")
-					fmt.Println(colValue)
-					revenue, err := strconv.Atoi(cols[i+1+restMonth][j+2])
-
+					fgline = append(fgline, transactionDate)
+					perc := float64(channel.Percentage) / 100
+					freeg, err := strconv.ParseFloat(cols[i+restMonth][j], 64)
+					revenue, err := strconv.ParseFloat(cols[i+restMonth+restMonth][j], 64)
 					if err != nil {
+						fmt.Print("cell:")
+						fmt.Print(i)
+						fmt.Print("&")
+						fmt.Print(j)
+						fmt.Print("-")
 						fmt.Println(err)
-						return
 					}
 
-					unitSold, err := strconv.Atoi(colValue)
+					unitSold, err := strconv.ParseFloat(colValue, 64)
 					if err != nil {
+						fmt.Print("cell:")
+						fmt.Print(i)
+						fmt.Print("&")
+						fmt.Print(j)
+						fmt.Print("-")
 						fmt.Println(err)
-						return
 					}
-					line = append(line, strconv.Itoa(revenue*channel.Percentage/100))
-					line = append(line, strconv.Itoa(revenue*channel.Percentage/100))
-					line = append(line, strconv.Itoa(unitSold*channel.Percentage/100))
+					fgline = append(fgline, "0")
+					fgline = append(fgline, "0")
+					if k != len(channels)-1 {
+						re = re + revenue*perc
+						us = us + unitSold*perc
+						fg = fg + freeg*perc
+						// fmt.Print(us)
+						// fmt.Print("----")
+						// fmt.Println(re)
+						line = append(line, strconv.FormatFloat(revenue*perc, 'g', -1, 64))
+						line = append(line, strconv.FormatFloat(revenue*perc, 'g', -1, 64))
+						line = append(line, strconv.FormatFloat(math.Ceil(unitSold*perc), 'g', -1, 64))
+						fgline = append(fgline, strconv.FormatFloat(math.Ceil(freeg*perc), 'g', -1, 64))
+						// fmt.Print(colValue)
+						// fmt.Print("----")
+						// fmt.Print(unitSold)
+						// fmt.Print("----")
+						// fmt.Print(perc)
+						// fmt.Print("----")
+						// fmt.Print(unitSold * perc)
+						// fmt.Print("----")
+						// fmt.Println(math.Floor(unitSold * perc))
+					} else {
+						line = append(line, strconv.FormatFloat(revenue-re, 'g', -1, 64))
+						line = append(line, strconv.FormatFloat(revenue-re, 'g', -1, 64))
+						line = append(line, strconv.FormatFloat(math.Floor(unitSold-us), 'g', -1, 64))
+						fgline = append(fgline, strconv.FormatFloat(math.Floor(freeg-fg), 'g', -1, 64))
+					}
 					line = append(line, cols[0][j])
 					line = append(line, channel.Channel)
 					line = append(line, transactionDate)
+					fgline = append(fgline, cols[0][j])
+					fgline = append(fgline, channel.Channel)
+					fgline = append(fgline, transactionDate)
+					// fmt.Println(line)
 					records = append(records, line)
+					records = append(records, fgline)
 				}
 			}
 		}
 	}
 
-	return
-
-	output, err := os.Create("result.csv")
+	output, err := os.Create(outputFile)
 	if err != nil {
 		fmt.Println(err)
 		return
