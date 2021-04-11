@@ -42,7 +42,7 @@ func main() {
 
 	sheets := f.GetSheetList()
 	const inForm = "Jan-06"
-	const outForm = "01/02/2006"
+	const outForm = "02/01/2006"
 	channels := []Channel{}
 	records := [][]string{}
 	header := []string{"Transaction Date", "Value in document currency", "Value in Company Currency", "Units Sold",
@@ -83,21 +83,21 @@ func main() {
 					freeg, err := strconv.ParseFloat(cols[i+restMonth][j], 64)
 					revenue, err := strconv.ParseFloat(cols[i+restMonth+restMonth][j], 64)
 					if err != nil {
-						fmt.Print("cell:")
-						fmt.Print(i)
-						fmt.Print("&")
-						fmt.Print(j)
-						fmt.Print("-")
+						// fmt.Print("cell:")
+						// fmt.Print(i)
+						// fmt.Print("&")
+						// fmt.Print(j)
+						// fmt.Print("-")
 						fmt.Println(err)
 					}
 
 					unitSold, err := strconv.ParseFloat(colValue, 64)
 					if err != nil {
-						fmt.Print("cell:")
-						fmt.Print(i)
-						fmt.Print("&")
-						fmt.Print(j)
-						fmt.Print("-")
+						// fmt.Print("cell:")
+						// fmt.Print(i)
+						// fmt.Print("&")
+						// fmt.Print(j)
+						// fmt.Print("-")
 						fmt.Println(err)
 					}
 					fgline = append(fgline, "0")
@@ -109,10 +109,10 @@ func main() {
 						// fmt.Print(us)
 						// fmt.Print("----")
 						// fmt.Println(re)
-						line = append(line, strconv.FormatFloat(revenue*perc, 'g', -1, 64))
-						line = append(line, strconv.FormatFloat(revenue*perc, 'g', -1, 64))
-						line = append(line, strconv.FormatFloat(math.Ceil(unitSold*perc), 'g', -1, 64))
-						fgline = append(fgline, strconv.FormatFloat(math.Ceil(freeg*perc), 'g', -1, 64))
+						line = append(line, strconv.FormatFloat(revenue*perc, 'f', -1, 64))
+						line = append(line, strconv.FormatFloat(revenue*perc, 'f', -1, 64))
+						line = append(line, strconv.FormatFloat(math.Floor(unitSold*perc+0.5), 'f', -1, 64))
+						fgline = append(fgline, strconv.FormatFloat(math.Floor(freeg*perc+0.5), 'f', -1, 64))
 						// fmt.Print(colValue)
 						// fmt.Print("----")
 						// fmt.Print(unitSold)
@@ -123,10 +123,10 @@ func main() {
 						// fmt.Print("----")
 						// fmt.Println(math.Floor(unitSold * perc))
 					} else {
-						line = append(line, strconv.FormatFloat(revenue-re, 'g', -1, 64))
-						line = append(line, strconv.FormatFloat(revenue-re, 'g', -1, 64))
-						line = append(line, strconv.FormatFloat(math.Floor(unitSold-us), 'g', -1, 64))
-						fgline = append(fgline, strconv.FormatFloat(math.Floor(freeg-fg), 'g', -1, 64))
+						line = append(line, strconv.FormatFloat(revenue-re, 'f', -1, 64))
+						line = append(line, strconv.FormatFloat(revenue-re, 'f', -1, 64))
+						line = append(line, strconv.FormatFloat(math.Floor(unitSold-us+0.5), 'f', -1, 64))
+						fgline = append(fgline, strconv.FormatFloat(math.Floor(freeg-fg+0.5), 'f', -1, 64))
 					}
 					line = append(line, cols[0][j])
 					line = append(line, channel.Channel)
@@ -134,7 +134,7 @@ func main() {
 					fgline = append(fgline, cols[0][j])
 					fgline = append(fgline, channel.Channel)
 					fgline = append(fgline, transactionDate)
-					// fmt.Println(line)
+					//fmt.Println(line)
 					records = append(records, line)
 					records = append(records, fgline)
 				}

@@ -1,4 +1,4 @@
-module me.leon/execel-processor
+module me.leon/processor
 
 go 1.15
 
